@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Moschino | Minimalist Free HTML Portfolio by WowThemes.net</title>
+<link rel='stylesheet' href='css/woocommerce-layout.css' type='text/css' media='all'/>
+<link rel='stylesheet' href='css/woocommerce-smallscreen.css' type='text/css' media='only screen and (max-width: 768px)'/>
+<link rel='stylesheet' href='css/woocommerce.css' type='text/css' media='all'/>
+<link rel='stylesheet' href='css/font-awesome.min.css' type='text/css' media='all'/>
+<link rel='stylesheet' href='style.css' type='text/css' media='all'/>
+<link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Oswald:400,500,700%7CRoboto:400,500,700%7CHerr+Von+Muellerhoff:400,500,700%7CQuattrocento+Sans:400,500,700' type='text/css' media='all'/>
+<link rel='stylesheet' href='css/easy-responsive-shortcodes.css' type='text/css' media='all'/>
+</head>
+<body class="home page page-template page-template-template-portfolio page-template-template-portfolio-php">
+<div id="page">
+	<div class="container">
+		<header id="masthead" class="site-header">
+            <div class="site-branding">
+                <h1 class="site-title"><a href="index.html" rel="home">aN-FTea</a></h1>
+                <h2 class="site-description">Platform for creating and interacting with NFT's</h2>
+            </div>
+            <nav id="site-navigation" class="main-navigation">
+            <button class="menu-toggle">Menu</button>
+            <a class="skip-link screen-reader-text" href="#content">Skip to content</a>
+            <div class="menu-menu-1-container">
+                <ul id="menu-menu-1" class="menu">
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="login.html">Login</a></li>
+                    <li><a href="signup.html">Signup</a></li>
+                    <li><a href="profile.html">Profile</a></li>
+                    <li><a href="about.html">About</a></li>
+                    <!--<li><a href="blog.html">Blog</a></li> -->
+                    <!--<li><a href="elements.html">Elements</a></li> -->
+                    <!--<li><a href="#">Pages</a> 
+                    <ul class="sub-menu">
+                        <li><a href="portfolio-item.html">Portfolio Item</a></li>
+                        <li><a href="blog-single.html">Blog Article</a></li>
+                        <li><a href="shop-single.html">Shop Item</a></li>
+                        <li><a href="portfolio-category.html">Portfolio Category</a></li>
+                    </ul>
+                    </li>-->
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+            </div>
+            </nav>
+            </header>
+		<!-- #masthead -->
+		<div id="secondary" class="column third">
+            <div class="widget-area">
+                <aside class="widget">
+                    <h4 class="widget-title">User Signup</h4>
+                    <form class="wpcf7" method="post" id="contactform">
+                        <div class="form">
+                            <p><input type="text" name="name" placeholder="Name"></p>
+                            <p><input type="text" name="email" placeholder="Email address"></p>
+                            <p><input type="password" name="password" placeholder="Password"></p>
+                            <p><input type="password" name="password" placeholder="Confirm Password"></p>
+                            <p><input type="submit" id="signup" class="clearfix btn" value="Signup"></p>
+                        </div>
+                    </form>
+                    <div class="done">								
+                        Your message has been sent. Thank you!
+                    </div>
+                </aside>
+            </div>
+        </div>
+		<!-- #content -->
+	</div>
+	<!-- .container -->
+	
+	<a href="#top" class="smoothup" title="Back to top"><span class="genericon genericon-collapse"></span></a>
+</div>
+<!-- #page -->
+<script src='js/jquery.js'></script>
+<script src='js/plugins.js'></script>
+<script src='js/scripts.js'></script>
+<script src='js/masonry.pkgd.min.js'></script>
+<script src='js/validate.js'></script>
+</body>
+</html>
+
+
+
+<!----- -->
+
+<script>
+
+    var cryptoZombies;
+    var userAccount;
+    const showZombieButton = document.querySelector('.showZombieButton');
+    const createzombieButton = document.querySelector('.createzombieButton');
+    const levelupButton = document.querySelector('.levelupButton');
+
+    function startApp() {
+	
+      //ZombieOwnership contratc address
+      var cryptoZombiesAddress = "0xC08d276D3022F1E9E1e99eBAa6410fE4FcbEcB8f";
+
+      cryptoZombies = new web3.eth.Contract(cryptoZombiesABI, cryptoZombiesAddress);
+
+
+ //the following code from Lesson 6, chapter 5 is obsolete
+ //     var accountInterval = setInterval(function () {
+
+  //      if (web3.eth.accounts[0] !== userAccount) {
+          //userAccount = web3.eth.accounts[0];
+
+     //     getZombiesByOwner(userAccount)
+      //      .then(displayZombies);
+      //  }
+     // }, 100);
+
+      cryptoZombies.events.Transfer({ filter: { _to: userAccount } })
+        .on("data", function (event) {
+          let data = event.returnValues;
+          getZombiesByOwner(userAccount).then(displayZombies);
+        }).on("error", console.error);
+    }
+
+    function displayZombies(ids) {
+      $("#zombies").empty();
+      for (id of ids) {
+
+        getZombieDetails(id)
+          .then(function (zombie) {
+
+
+            $("#zombies").append(`<div class="zombie">
+              <ul>
+                <li>Name: ${zombie.name}</li>
+                <li>DNA: ${zombie.dna}</li>
+                <li>Level: ${zombie.level}</li>
+                <li>Wins: ${zombie.winCount}</li>
+                <li>Losses: ${zombie.lossCount}</li>
+                <li>Ready Time: ${zombie.readyTime}</li>
+              </ul>
+            </div>`);
+          });
+      }
+
+    }
+
+    function createRandomZombie(name) {
+
+
+      $("#txStatus").text("Creating new zombie on the blockchain. This may take a while...");
+
+      return cryptoZombies.methods.createRandomZombie(name)
+        .send({ from: userAccount })
+        .on("receipt", function (receipt) {
+          $("#txStatus").text("Successfully created " + name + "!");
+
+          getZombiesByOwner(userAccount).then(displayZombies);
+        })
+        .on("error", function (error) {
+
+          $("#txStatus").text(error);
+        });
+    }
+
+    function feedOnKitty(zombieId, kittyId) {
+      $("#txStatus").text("Eating a kitty. This may take a while...");
+      return cryptoZombies.methods.feedOnKitty(zombieId, kittyId)
+        .send({ from: userAccount })
+        .on("receipt", function (receipt) {
+          $("#txStatus").text("Ate a kitty and spawned a new Zombie!");
+          getZombiesByOwner(userAccount).then(displayZombies);
+        })
+        .on("error", function (error) {
+          $("#txStatus").text(error);
+        });
+    }
+
+    function levelUp(zombieId) {
+      $("#txStatus").text("Leveling up your zombie...");
+      return cryptoZombies.methods.levelUp(zombieId)
+        .send({ from: userAccount, value: web3.utils.toWei("0.001", "ether") })
+        .on("receipt", function (receipt) {
+          $("#txStatus").text("Power overwhelming! Zombie successfully leveled up");
+        })
+        .on("error", function (error) {
+          $("#txStatus").text(error);
+        });
+    }
+
+    function getZombieDetails(id) {
+      return cryptoZombies.methods.zombies(id).call()
+    }
+
+    function zombieToOwner(id) {
+      return cryptoZombies.methods.zombieToOwner(id).call()
+    }
+
+    function getZombiesByOwner(owner) {
+      return cryptoZombies.methods.getZombiesByOwner(owner).call()
+    }
+
+    window.addEventListener('load', async () => {
+    // Modern dapp browsers...
+    if (window.ethereum) {
+        window.web3 = new Web3(ethereum);
+        try {
+            // Request account access if needed
+            const accounts = await ethereum.enable();
+            // Acccounts now exposed
+            userAccount = accounts[0];
+            startApp()
+        } catch (error) {
+            // User denied account access...
+        }
+    }
+    // Legacy dapp browsers...
+    else if (window.web3) {
+        window.web3 = new Web3(web3.currentProvider);
+        // Acccounts always exposed
+        userAccount = web3.eth.accounts[0];
+        startApp()
+    }
+    // Non-dapp browsers...
+    else {
+        console.log('Non-Ethereum browser detected. You should consider trying MetaMask!');
+    }
+   });
+ 
+   //the following code from Lesson 6, chapter 2 is obsolete
+   //metamask no longer inject web3 since early 2021
+   //window.addEventListener('load', function () {
+
+  //    if (typeof web3 !== 'undefined') {
+   //     web3js = new Web3(web3.currentProvider);
+   //   } else {
+
+    //  }
+
+
+    //  startApp()
+
+  //  }) 
+
+   ethereum.on('accountsChanged', (accounts) => {
+       window.location.reload();
+   });
+
+   ethereum.on('chainChanged', (chainId) => {
+       window.location.reload(); 
+   });  
+
+ 
+    createzombieButton.addEventListener('click', () => {
+      createRandomZombie(userAccount);
+
+    });
+
+    showZombieButton.addEventListener('click', () => {
+      getZombiesByOwner(userAccount)
+            .then(displayZombies);
+
+    });
+
+    levelupButton.addEventListener('click', () => {
+      getZombiesByOwner(userAccount)
+            .then(levelUp);
+
+    });
+
+
+
+  </script>
